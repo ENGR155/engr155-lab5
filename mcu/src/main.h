@@ -17,4 +17,7 @@
 #define BUTTON_PIN PA7
 #define DELAY_TIM TIM2
 
+// Second button (sensor B)
+#define BUTTON_PIN_2 PA9 // Or whatever we choose
+
 #endif // MAIN_H
