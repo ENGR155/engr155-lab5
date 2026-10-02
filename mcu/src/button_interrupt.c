@@ -45,7 +45,7 @@ int main(void) {
     // Enable interrupts globally
     __enable_irq();
 
-    // TODO: Configure interrupt for falling edge of GPIO pin for button 1
+    // TODO: Configure interrupt for rising edge of GPIO pin for button 1
     // 1. Configure mask bit
     // 2. Enable rising edge trigger
     // 3. Disable falling edge trigger
@@ -59,20 +59,10 @@ int main(void) {
     // 1. Configure mask bit
     // 2. Enable rising edge trigger
     // 3. Disable falling edge trigger
-
     // TODO: Change pin offset and interrupt vector (do somewhere in between 6-9)
     EXTI->IMR1 |= (1 << gpioPinOffset(BUTTON_PIN_2));   // 1. Configure mask bit
     EXTI->RTSR1 |= (1 << gpioPinOffset(BUTTON_PIN_2)); // 2. Enable rising edge trigger
     EXTI->FTSR1 &= ~(1 << gpioPinOffset(BUTTON_PIN_2));  // 3. Disable falling edge trigger
-
-    // Button 1 press
-    void EXTI2_IRQHandler(void) {
-    if (EXTI->PR1 & (1 << 2)) {
-        EXTI->PR1 |= (1 << 2); // Clear interrupt flag
-        // Handle Button 1 press here
-        printf("Button 1 Pressed");
-    }
-
 
     while(1){   
         delay_millis(TIM2, 200);
@@ -81,14 +71,24 @@ int main(void) {
 }
 
 // TODO: What is the right name for the IRQHandler? EXTI lines 5-9
-void XXXXXX(void){
-    // Check that the button was what triggered our interrupt
-    if (EXTI->PR1 & (1 << )){
+void EXTI9_5_IRQHandler(void){
+    // Check that button 1 was what triggered our interrupt
+    if (EXTI->PR1 & (1 << gpioPinOffset(BUTTON_PIN))){
         // If so, clear the interrupt (NB: Write 1 to reset.)
-        EXTI->PR1 = (1 << );
+        EXTI->PR1 = (1 << gpioPinOffset(BUTTON_PIN));
 
         // Then toggle the LED
-        togglePin(LED_PIN);
+        printf("Hello\n");
+
+    }
+
+    // Check that button 2 was what triggered our interrupt
+    if (EXTI->PR1 & (1 << gpioPinOffset(BUTTON_PIN_2))){
+        // If so, clear the interrupt (NB: Write 1 to reset.)
+        EXTI->PR1 = (1 << gpioPinOffset(BUTTON_PIN_2));
+
+        // Then toggle the LED
+        printf("World\n");
 
     }
 }
