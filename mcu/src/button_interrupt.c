@@ -21,20 +21,20 @@ int _write(int file, char *ptr, int len) {
 #include "main.h"
 
 int main(void) {
-    // Enable LED as output
-    gpioEnable(GPIO_PORT_B);
-    pinMode(LED_PIN, GPIO_OUTPUT);
-
-    // Enable button as input
+    // Enable sensor 1 as input
     gpioEnable(GPIO_PORT_A);
     pinMode(BUTTON_PIN, GPIO_INPUT);
-    GPIOA->PUPDR |= (0b01 << 2*gpioPinOffset(BUTTON_PIN)); // Set PA7 as pull-up (PUPD7 = 01)
+    GPIOA->PUPDR |= (0b01 << 2*gpioPinOffset(BUTTON_PIN)); // Set PA5 as pull-up (PUPD5 = 01)
+
+    // Enable sensor 2 as an input
+    gpioEnable(GPIO_PORT_B);
+    pinMode(BUTTON_PIN_2, GPIO_INPUT);
+    GPIOA->PUPDR |= (0b01 << 2*gpioPinOffset(BUTTON_PIN_2)); // Set PA8 as pull-up (PUPD7 = 01)
 
     // Initialize timer
     RCC->APB1ENR1 |= (1 << 0); // TIM2EN
     initTIM(DELAY_TIM);
 
-    // TODO
     // 1. Enable SYSCFG clock domain in RCC
     RCC->APB2ENR |= (1 << 0);
     // 2. Configure EXTICR for the input button interrupt
@@ -59,25 +59,27 @@ int main(void) {
     // 1. Configure mask bit
     // 2. Enable rising edge trigger
     // 3. Disable falling edge trigger
-    // TODO: Change pin offset and interrupt vector (do somewhere in between 6-9)
+    // Change pin offset and interrupt vector (do somewhere in between 6-9)
     EXTI->IMR1 |= (1 << gpioPinOffset(BUTTON_PIN_2));   // 1. Configure mask bit
     EXTI->RTSR1 |= (1 << gpioPinOffset(BUTTON_PIN_2)); // 2. Enable rising edge trigger
     EXTI->FTSR1 &= ~(1 << gpioPinOffset(BUTTON_PIN_2));  // 3. Disable falling edge trigger
 
+    printf("Starting\n");
     while(1){   
-        delay_millis(TIM2, 200);
+        delay_millis(TIM2, 50);
     }
 
 }
 
-// TODO: What is the right name for the IRQHandler? EXTI lines 5-9
+// What is the right name for the IRQHandler? EXTI lines 5-9
 void EXTI9_5_IRQHandler(void){
+
     // Check that button 1 was what triggered our interrupt
     if (EXTI->PR1 & (1 << gpioPinOffset(BUTTON_PIN))){
         // If so, clear the interrupt (NB: Write 1 to reset.)
         EXTI->PR1 = (1 << gpioPinOffset(BUTTON_PIN));
 
-        // Then toggle the LED
+
         printf("Hello\n");
 
     }
