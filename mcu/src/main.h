@@ -14,8 +14,11 @@
 ///////////////////////////////////////////////////////////////////////////////
 
 #define LED_PIN PB3
-#define BUTTON_PIN PA5
-#define DELAY_TIM TIM2
+#define BUTTON_PIN PA6
+
+#define DELAY_TIM_2 TIM2
+#define DELAY_TIM_6 TIM6
+#define DELAY_TIM_7 TIM7
 
 // Second button (sensor B)
 #define BUTTON_PIN_2 PA8 // Or whatever we choose

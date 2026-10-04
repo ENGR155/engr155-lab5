@@ -32,8 +32,8 @@ int main(void) {
     GPIOA->PUPDR |= (0b01 << 2*gpioPinOffset(BUTTON_PIN_2)); // Set PA8 as pull-up (PUPD7 = 01)
 
     // Initialize timer
-    RCC->APB1ENR1 |= (1 << 0); // TIM2EN
-    initTIM(DELAY_TIM);
+    RCC->APB1ENR1 |= (1 << 4); // TIM6EN
+    RCC->APB1ENR1 |= (1 << 5); // TIM7EN
 
     // 1. Enable SYSCFG clock domain in RCC
     RCC->APB2ENR |= (1 << 0);
@@ -48,37 +48,65 @@ int main(void) {
     // TODO: Configure interrupt for rising edge of GPIO pin for button 1
     // 1. Configure mask bit
     // 2. Enable rising edge trigger
-    // 3. Disable falling edge trigger
+    // 3. Enable falling edge trigger
     // 4. Turn on EXTI interrupt in NVIC_ISER
     EXTI->IMR1 |= (1 << gpioPinOffset(BUTTON_PIN));   // 1. Configure mask bit
     EXTI->RTSR1 |= (1 << gpioPinOffset(BUTTON_PIN)); // 2. Enable rising edge trigger
-    EXTI->FTSR1 &= ~(1 << gpioPinOffset(BUTTON_PIN));  // 3. Disable falling edge trigger
+    EXTI->FTSR1 |= (1 << gpioPinOffset(BUTTON_PIN));  // 3. Enable falling edge trigger
     NVIC->ISER[0] |= (1 << 23);                       // 4. Turn on EXTI interrupt in NVIC_ISER (EXTI9_5 is IRQ 23)
 
     // Now do the same for button 2
     // 1. Configure mask bit
     // 2. Enable rising edge trigger
-    // 3. Disable falling edge trigger
+    // 3. Enable falling edge trigger
     // Change pin offset and interrupt vector (do somewhere in between 6-9)
     EXTI->IMR1 |= (1 << gpioPinOffset(BUTTON_PIN_2));   // 1. Configure mask bit
     EXTI->RTSR1 |= (1 << gpioPinOffset(BUTTON_PIN_2)); // 2. Enable rising edge trigger
-    EXTI->FTSR1 &= ~(1 << gpioPinOffset(BUTTON_PIN_2));  // 3. Disable falling edge trigger
+    EXTI->FTSR1 |= (1 << gpioPinOffset(BUTTON_PIN_2));  // 3. Enable falling edge trigger
 
     printf("Starting\n");
-    while(1){   
-        delay_millis(TIM2, 50);
+    initTIM(DELAY_TIM_7);
+    initTIM(DELAY_TIM_6);
+    while(1){
+        // Sets and delays timer 7
+        delay_millis(TIM7, 1000);
+
+        // Prints angular velocity based on dummy timers
+        printf("%.2f\n", calcangularvelocity(EXTI9_5_IRQHandler));
     }
 
 }
 
 // What is the right name for the IRQHandler? EXTI lines 5-9
-void EXTI9_5_IRQHandler(void){
+/*
+TODO: Set up a counter variable that counts the number of interrupts
+*/
+int EXTI9_5_IRQHandler(void){
+
+    int interruptcount = 0;
+    char currentinterrupt = 'A'; // Current Interrupt
+    char previnterrupt = 'B'; // Previous Interrupt
+
+    // Assume clockwise, 1 = positive, -1 = negative
+    int direction = 1;
 
     // Check that button 1 was what triggered our interrupt
     if (EXTI->PR1 & (1 << gpioPinOffset(BUTTON_PIN))){
         // If so, clear the interrupt (NB: Write 1 to reset.)
         EXTI->PR1 = (1 << gpioPinOffset(BUTTON_PIN));
 
+        currentinterrupt = 'A';
+        if (currentinterrupt == previnterrupt) { // Change in direction
+            direction = -1*direction;
+        }
+
+        if (direction == 1) { // Positive
+            interruptcount++;
+        } else {
+            interruptcount--;
+        }
+        
+        previnterrupt = 'A';
 
         printf("Hello\n");
 
@@ -89,8 +117,37 @@ void EXTI9_5_IRQHandler(void){
         // If so, clear the interrupt (NB: Write 1 to reset.)
         EXTI->PR1 = (1 << gpioPinOffset(BUTTON_PIN_2));
 
+        currentinterrupt = 'B';
+        if (currentinterrupt == previnterrupt) { // Change in direction
+            direction = -1*direction;
+        }
+
+        if (direction == 1) { // Positive
+            interruptcount++;
+        } else {
+            interruptcount--;
+        }
+        
+        previnterrupt = 'B'; 
+
         // Then toggle the LED
         printf("World\n");
 
     }
+
+    return interruptcount;
+}
+
+double calcangularvelocity(int count) {
+    double vel = 0;
+
+    // If count is 0 - stopped
+    if (count == 0) {
+        vel = 0;
+        printf("Stopped, Not moving\n")
+    } else {
+        vel = (1/(4*408))*count; // Accounts for both positive and negative motion
+    }
+
+    return vel;
 }
