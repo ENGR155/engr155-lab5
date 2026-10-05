@@ -31,7 +31,7 @@ double calcangularvelocity(int count) {
         printf("Stopped, Not moving\n");
     } else {
         // 120 instead of 408 if ending in -10
-        vel = (1.0/(4*408))*count; // Accounts for both positive and negative motion
+        vel = (1.0/(4*408 * 0.8))*count; // Accounts for both positive and negative motion
     }
 
     return vel;
@@ -130,7 +130,7 @@ int main(void) {
     initTIM(DELAY_TIM_6);
     while(1){
         // Sets and delays timer 7
-        delay_millis(TIM7, 1000);
+        delay_millis(TIM7, 800);
 
         /*
         Printing is weird, how to do:
@@ -142,7 +142,7 @@ int main(void) {
         */
 
         // Disables the interrupts
-        _disable_irq();
+        __disable_irq();
 
         int count2 = interruptcount; // Dummy variable
 
