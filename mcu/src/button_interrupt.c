@@ -127,10 +127,10 @@ int main(void) {
 
     printf("Starting\n");
     initTIM(DELAY_TIM_7);
-    initTIM(DELAY_TIM_6);
+
     while(1){
         // Sets and delays timer 7
-        delay_millis(TIM7, 800);
+        delay_millis(TIM7, 1000);
 
         /*
         Printing is weird, how to do:
@@ -152,7 +152,7 @@ int main(void) {
         __enable_irq();
 
         // Prints angular velocity based on dummy timers
-        printf("%.3f rev/s\n", calcangularvelocity(count2));
+        printf("%.3f rev/s\n", (1000.0/1000)*calcangularvelocity(count2));
 
         
     }
