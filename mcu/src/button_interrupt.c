@@ -20,7 +20,7 @@ int _write(int file, char *ptr, int len) {
 
 #include "main.h"
 
-int interruptcount = 0;
+volatile int interruptcount = 0;
 
 double calcangularvelocity(int count) {
     double vel = 0;
@@ -43,49 +43,36 @@ Global count variable resets every second
 */
 void EXTI9_5_IRQHandler(void){
 
-    static char currentinterrupt = 'A'; // Current Interrupt
-    static char previnterrupt = 'B'; // Previous Interrupt
-
-    // Assume clockwise, 1 = positive, -1 = negative
-    static int direction = 1;
-
-    // Check that button 1 was what triggered our interrupt
+    // Check that A triggered an interrupt
     if (EXTI->PR1 & (1 << gpioPinOffset(BUTTON_PIN))){
         // If so, clear the interrupt (NB: Write 1 to reset.)
         EXTI->PR1 = (1 << gpioPinOffset(BUTTON_PIN));
 
-        currentinterrupt = 'A';
-        if (currentinterrupt == previnterrupt) { // Change in direction
-            direction = -1*direction;
-        }
+        int a = digitalRead(BUTTON_PIN);
+        int b = digitalRead(BUTTON_PIN_2);
 
-        if (direction == 1) { // Positive
+        // Counting
+        if (a != b) {
             interruptcount++;
         } else {
             interruptcount--;
         }
-        
-        previnterrupt = 'A';
 
     }
 
-    // Check that button 2 was what triggered our interrupt
+    // Check that B triggered an interrupt
     if (EXTI->PR1 & (1 << gpioPinOffset(BUTTON_PIN_2))){
         // If so, clear the interrupt (NB: Write 1 to reset.)
         EXTI->PR1 = (1 << gpioPinOffset(BUTTON_PIN_2));
 
-        currentinterrupt = 'B';
-        if (currentinterrupt == previnterrupt) { // Change in direction
-            direction = -1*direction;
-        }
+        int a = digitalRead(BUTTON_PIN);
+        int b = digitalRead(BUTTON_PIN_2);
 
-        if (direction == 1) { // Positive
+        if (a == b) {
             interruptcount++;
         } else {
             interruptcount--;
         }
-        
-        previnterrupt = 'B'; 
 
     }
 }
@@ -146,8 +133,17 @@ int main(void) {
         // Sets and delays timer 7
         delay_millis(TIM7, 1000);
 
+        /*
+        Printing is weird, how to do:
+        In SEGGER, right-click your solution name in the left panel.
+        Select Options.
+        Search for float.
+        Set Printf Floating Point Supported to Yes.
+        Rebuild your program and restart debugging.
+        */
+
         // Prints angular velocity based on dummy timers
-        printf("%e\n", calcangularvelocity(interruptcount));
+        printf("%.3f rev/s\n", calcangularvelocity(interruptcount));
 
         interruptcount = 0;
     }
