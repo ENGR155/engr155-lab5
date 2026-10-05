@@ -30,6 +30,7 @@ double calcangularvelocity(int count) {
         vel = 0;
         printf("Stopped, Not moving\n");
     } else {
+        // 120 instead of 408 if ending in -10
         vel = (1.0/(4*408))*count; // Accounts for both positive and negative motion
     }
 
@@ -84,13 +85,11 @@ int main(void) {
     gpioEnable(GPIO_PORT_A);
     pinMode(BUTTON_PIN, GPIO_INPUT);
     GPIOA->PUPDR &= ~(0b11 << 2*gpioPinOffset(BUTTON_PIN));
-    GPIOA->PUPDR |= (0b01 << 2*gpioPinOffset(BUTTON_PIN));
 
     // Enable sensor 2 as an input
     gpioEnable(GPIO_PORT_B);
     pinMode(BUTTON_PIN_2, GPIO_INPUT);
     GPIOA->PUPDR &= ~(0b11 << 2*gpioPinOffset(BUTTON_PIN_2));
-    GPIOA->PUPDR |= (0b01 << 2*gpioPinOffset(BUTTON_PIN_2));
 
 
     // Initialize timer
@@ -142,10 +141,20 @@ int main(void) {
         Rebuild your program and restart debugging.
         */
 
-        // Prints angular velocity based on dummy timers
-        printf("%.3f rev/s\n", calcangularvelocity(interruptcount));
+        // Disables the interrupts
+        _disable_irq();
 
-        interruptcount = 0;
+        int count2 = interruptcount; // Dummy variable
+
+        interruptcount = 0; // Resets count
+
+        // Enable interrupts globally
+        __enable_irq();
+
+        // Prints angular velocity based on dummy timers
+        printf("%.3f rev/s\n", calcangularvelocity(count2));
+
+        
     }
 
 }
