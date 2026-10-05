@@ -31,7 +31,7 @@ double calcangularvelocity(int count) {
         printf("Stopped, Not moving\n");
     } else {
         // 120 instead of 408 if ending in -10
-        vel = (1.0/(4*408 * 0.8))*count; // Accounts for both positive and negative motion
+        vel = (1.0/(4*446 * 0.8))*count; // Accounts for both positive and negative motion
     }
 
     return vel;
@@ -130,7 +130,7 @@ int main(void) {
 
     while(1){
         // Sets and delays timer 7
-        delay_millis(TIM7, 1000);
+        delay_millis(TIM7, 800);
 
         /*
         Printing is weird, how to do:
@@ -152,7 +152,7 @@ int main(void) {
         __enable_irq();
 
         // Prints angular velocity based on dummy timers
-        printf("%.3f rev/s\n", (1000.0/1000)*calcangularvelocity(count2));
+        printf("%.3f rev/s\n", (1000.0/800)*calcangularvelocity(count2)); // Scaling
 
         
     }
